@@ -16,18 +16,22 @@ jobs:
       - name: Build Docker image
         run: docker build -t my-web-app .
 
-  security-scan:
+  build_and_scan:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t my-web-app:latest .
+
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Scan Docker image for vulnerabilities
         run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL my-web-app || { echo "Vulnerabilities detected, please check!"; exit 1; }
+          trivy image --exit-code 1 --severity HIGH,CRITICAL my-web-app:latest || { echo "Vulnerabilities detected, please check!"; exit 1; }
   deploy:
     runs-on: ubuntu-latest
     needs: security-scan
