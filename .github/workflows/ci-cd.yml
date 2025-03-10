@@ -35,8 +35,13 @@ jobs:
       - name: Install Trivy
         run: |
           sudo apt-get update && sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.41.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
+          # Cách 1: Dùng URL phiên bản cố định
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.60.0/trivy_0.60.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.60.0_Linux-64bit.deb
+
+    # Cách 2 (khuyến nghị): Dùng script cài đặt
+    # curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
 
       - name: Scan Docker image for vulnerabilities
         id: scan
