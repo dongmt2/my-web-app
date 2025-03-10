@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Docker image
-        run: docker build -t my-web-app .
+        run: |
+          docker build -t my-web-app .
 
   security-scan:
     runs-on: ubuntu-latest
@@ -23,14 +24,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       
-      # Bổ sung bước build lại image để đảm bảo image có sẵn trong job này
+      # Build lại image để đảm bảo có sẵn trong job này
       - name: Build Docker image for scanning
-        run: docker build -t my-web-app .
-      
+        run: |
+          docker build -t my-web-app .
+
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-      
+
       - name: Scan Docker image for vulnerabilities
         run: |
           trivy image --exit-code 1 --severity HIGH,CRITICAL my-web-app || { echo "Vulnerabilities detected, please check!"; exit 1; }
@@ -43,26 +45,25 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Docker image for deploy
-        run: docker build -t my-web-app .
+        run: |
+          docker build -t my-web-app .
 
       - name: Deploy container
-        run: docker run -d --restart unless-stopped -p 8080:80 my-web-app
+        run: |
+          docker run -d --restart unless-stopped -p 8080:80 my-web-app
 
       - name: Notify Dashboard
         run: |
-          # Chuẩn bị payload với thông tin cơ bản về workflow
+          # Tạo payload thông báo dưới dạng JSON
           PAYLOAD=$(cat <<EOF
-          {
-            "workflow": "${{ github.workflow }}",
-            "status": "success",
-            "commit": "${{ github.sha }}",
-            "run_id": "${{ github.run_id }}"
-          }
+{
+  "workflow": "${{ github.workflow }}",
+  "status": "success",
+  "commit": "${{ github.sha }}",
+  "run_id": "${{ github.run_id }}"
+}
 EOF
-          (
+          )
           echo "Sending notification payload: $PAYLOAD"
-          # Gửi thông báo đến dashboard qua API
-          curl -X POST \
-               -H "Content-Type: application/json" \
-               -d "$PAYLOAD" \
-               https://b735-2405-4802-901d-a8c0-f928-c867-c159-9fe4.ngrok-free.app/api/workflow-runs
+          # Gửi payload qua API đến dashboard
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" https://b735-2405-4802-901d-a8c0-f928-c867-c159-9fe4.ngrok-free.app/api/workflow-runs
