@@ -36,9 +36,9 @@ jobs:
           trivy image --exit-code 1 --severity HIGH,CRITICAL my-web-app || { echo "Vulnerabilities detected, please check!"; exit 1; }
 
   deploy:
-  runs-on: ubuntu-latest
-  needs: security-scan
-  steps:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
